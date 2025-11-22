@@ -1,5 +1,6 @@
 const path = require('path');
 const fs = require('fs').promises;
+const crypto = require('crypto');
 const { createSftpClient } = require('../config/sftp');
 
 /**
@@ -7,12 +8,15 @@ const { createSftpClient } = require('../config/sftp');
  */
 async function uploadFile(req, res) {
   let sftp = null;
+  let localFilePath = null;
   
   try {
     // Check if file was uploaded
     if (!req.file) {
       return res.status(400).json({ error: 'No file uploaded' });
     }
+
+    localFilePath = req.file.path;
 
     // Get remote path from query parameter or use root
     const remotePath = req.query.remotePath || '/';
@@ -22,11 +26,7 @@ async function uploadFile(req, res) {
     sftp = await createSftpClient(req.sftpCredentials);
     
     // Upload file
-    const localFilePath = req.file.path;
     await sftp.put(localFilePath, remoteFilePath);
-    
-    // Clean up local file
-    await fs.unlink(localFilePath);
     
     res.json({
       message: 'File uploaded successfully',
@@ -39,6 +39,14 @@ async function uploadFile(req, res) {
       message: error.message
     });
   } finally {
+    // Clean up local file in finally block to ensure it's always removed
+    if (localFilePath) {
+      try {
+        await fs.unlink(localFilePath);
+      } catch (cleanupError) {
+        console.error('Failed to cleanup uploaded file:', cleanupError);
+      }
+    }
     if (sftp) {
       await sftp.end();
     }
@@ -103,15 +111,16 @@ async function downloadFile(req, res) {
     // Connect to SFTP server
     sftp = await createSftpClient(req.sftpCredentials);
     
-    // Generate local file path
-    const fileName = path.basename(remoteFilePath);
-    const localFilePath = path.join(__dirname, '../../downloaded', fileName);
+    // Generate secure local file path using UUID to prevent path traversal attacks
+    const originalFileName = path.basename(remoteFilePath);
+    const safeFileName = crypto.randomUUID() + '-' + originalFileName.replace(/[^a-zA-Z0-9.-]/g, '_');
+    const localFilePath = path.join(__dirname, '../../downloaded', safeFileName);
     
     // Download file
     await sftp.get(remoteFilePath, localFilePath);
     
-    // Send file to client
-    res.download(localFilePath, fileName, async (err) => {
+    // Send file to client with original filename
+    res.download(localFilePath, originalFileName, async (err) => {
       // Clean up local file after download
       try {
         await fs.unlink(localFilePath);
