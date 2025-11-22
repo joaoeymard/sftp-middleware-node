@@ -113,14 +113,16 @@ async function downloadFile(req, res) {
     
     // Generate secure local file path using UUID to prevent path traversal attacks
     const originalFileName = path.basename(remoteFilePath);
-    const safeFileName = crypto.randomUUID() + '-' + originalFileName.replace(/[^a-zA-Z0-9.-]/g, '_');
+    // Sanitize filename more strictly - remove all special characters except alphanumeric, underscore, and dash
+    const sanitizedFileName = originalFileName.replace(/[^a-zA-Z0-9_-]/g, '_');
+    const safeFileName = crypto.randomUUID() + '-' + sanitizedFileName;
     const localFilePath = path.join(__dirname, '../../downloaded', safeFileName);
     
     // Download file
     await sftp.get(remoteFilePath, localFilePath);
     
-    // Send file to client with original filename
-    res.download(localFilePath, originalFileName, async (err) => {
+    // Send file to client with sanitized filename to prevent information disclosure
+    res.download(localFilePath, sanitizedFileName, async (err) => {
       // Clean up local file after download
       try {
         await fs.unlink(localFilePath);
