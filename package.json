@@ -1,0 +1,19 @@
+{
+  "name": "sftp-middleware-node",
+  "version": "1.0.0",
+  "description": "Middleware em Node.js que realiza upload, listagem e download de arquivos em um servidor SFTP.",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node src/server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^5.1.0",
+    "multer": "^2.0.2",
+    "ssh2-sftp-client": "^12.0.1"
+  }
+}
