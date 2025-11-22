@@ -186,6 +186,15 @@ curl -X GET "http://localhost:3000/api/sftp/download?remoteFilePath=/pasta/arqui
 - Certifique-se de que o servidor SFTP está acessível e as credenciais são válidas
 - A porta padrão do SFTP é 22, mas pode ser customizada via header `sftp-port`
 
+## ⚠️ Considerações para Produção
+
+Para uso em produção, considere implementar:
+- **Rate limiting**: Limitação de taxa para prevenir abuso dos endpoints
+- **Autenticação**: Sistema de autenticação adicional para a API REST
+- **HTTPS**: Certificados SSL/TLS para comunicação segura
+- **Logs**: Sistema de logging mais robusto para auditoria
+- **Validação**: Validação adicional de tipos e tamanhos de arquivos
+
 ## 📄 Licença
 
 ISC
