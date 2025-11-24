@@ -8,6 +8,18 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Basic request logging for SFTP calls
+app.use((req, res, next) => {
+  const host = req.headers['sftp-host'];
+  const user = req.headers['sftp-username'];
+  if (host && user)
+    console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl} sftp=${user}@${host}`)
+  else
+    console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl} sftp=missing-credentials`);
+  
+  next();
+});
+
 // Routes
 app.use('/api/sftp', sftpRoutes);
 
