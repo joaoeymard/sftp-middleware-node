@@ -2,7 +2,7 @@ const express = require('express');
 const multer = require('multer');
 const path = require('path');
 const { validateSftpCredentials } = require('../middlewares/sftpAuth');
-const { uploadFile, listFiles, downloadFile } = require('../controllers/sftpController');
+const { uploadFile, listFiles, moveFile, downloadFile } = require('../controllers/sftpController');
 
 const router = express.Router();
 
@@ -47,5 +47,13 @@ router.get('/list', listFiles);
  * Query: remoteFilePath (required)
  */
 router.get('/download', downloadFile);
+
+/**
+ * POST /move
+ * Move/rename a file or directory on the SFTP server
+ * Headers: sftp-host, sftp-port (optional), sftp-username, sftp-password
+ * Query: from (source path), to (destination path)
+ */
+router.post('/move', moveFile);
 
 module.exports = router;

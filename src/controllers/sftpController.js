@@ -2,6 +2,8 @@ const path = require('path');
 const fs = require('fs').promises;
 const crypto = require('crypto');
 const { createSftpClient } = require('../config/sftp');
+const { formatRights, formatUtc, normalizeRemotePath } = require('../utils/format');
+
 
 /**
  * Upload file to SFTP server
@@ -75,14 +77,51 @@ async function listFiles(req, res) {
         name: file.name,
         type: file.type,
         size: file.size,
-        modifyTime: file.modifyTime,
-        accessTime: file.accessTime,
-        rights: file.rights
+        modifyTime: formatUtc(file.modifyTime),
+        accessTime: formatUtc(file.accessTime),
+        rights: formatRights(file.type, file.rights)
       }))
     });
   } catch (error) {
     res.status(500).json({
       error: 'Failed to list files',
+      message: error.message
+    });
+  } finally {
+    if (sftp) {
+      await sftp.end();
+    }
+  }
+}
+
+/**
+ * Move or rename a file/directory on the SFTP server
+ */
+async function moveFile(req, res) {
+  let sftp = null;
+
+  try {
+    const fromPath = normalizeRemotePath(req.query?.from);
+    const toPath = normalizeRemotePath(req.query?.to);
+
+    if (!fromPath || !toPath) {
+      return res.status(400).json({
+        error: 'Invalid parameters',
+        message: 'Provide valid from and to paths (no "..", allow absolute or relative paths)'
+      });
+    }
+
+    sftp = await createSftpClient(req.sftpCredentials);
+    await sftp.rename(fromPath, toPath);
+
+    res.json({
+      message: 'Moved successfully',
+      from: fromPath,
+      to: toPath
+    });
+  } catch (error) {
+    res.status(500).json({
+      error: 'Failed to move file/directory',
       message: error.message
     });
   } finally {
@@ -151,4 +190,4 @@ async function downloadFile(req, res) {
   }
 }
 
-module.exports = { uploadFile, listFiles, downloadFile };
+module.exports = { uploadFile, listFiles, moveFile, downloadFile };

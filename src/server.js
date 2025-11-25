@@ -36,7 +36,8 @@ app.get('/', (req, res) => {
       health: 'GET /health',
       upload: 'POST /api/sftp/upload',
       list: 'GET /api/sftp/list',
-      download: 'GET /api/sftp/download'
+      download: 'GET /api/sftp/download',
+      move: 'POST /api/sftp/move'
     },
     requiredHeaders: {
       'sftp-host': 'SFTP server hostname',
