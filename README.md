@@ -4,7 +4,7 @@ Middleware em Node.js que realiza upload, listagem e download de arquivos em um 
 
 ## 📋 Descrição
 
-Este projeto é uma API REST desenvolvida com Express.js que permite realizar operações de upload, listagem e download de arquivos em servidores SFTP. Cada requisição exige credenciais SFTP nos headers para autenticação.
+Este projeto é uma API REST desenvolvida com Express.js que permite realizar operações de upload, listagem e download de arquivos em servidores SFTP. As credenciais ficam armazenadas localmente em um arquivo JSON (ignorado pelo Git) e cada requisição só precisa enviar no header um UUID (`sftp-id`) que referencia a credencial.
 
 ## 🚀 Tecnologias
 
@@ -32,6 +32,26 @@ sftp-middleware-node/
 ├── package.json
 └── README.md
 ```
+
+## 🔑 Configuração das credenciais
+
+1. Crie um arquivo `sftp-credentials.json` na raiz do projeto (já está no `.gitignore`).  
+2. Adicione as credenciais usando um UUID como chave:
+
+```json
+{
+  "b21f5c56-7f4b-4c7a-8e73-7ebf9f7c0b1d": {
+    "host": "sftp.exemplo.com",
+    "port": 22,
+    "username": "usuario",
+    "password": "senha"
+  }
+}
+```
+
+- Use o valor do UUID no header `sftp-id` em cada requisição.  
+- Porta é opcional (padrão 22).  
+- Para armazenar o arquivo em outro caminho, defina `SFTP_CREDENTIALS_FILE` apontando para o JSON.
 
 ## 🔧 Instalação
 
@@ -83,10 +103,7 @@ POST /api/sftp/upload
 ```
 
 **Headers obrigatórios:**
-- `sftp-host`: Hostname do servidor SFTP
-- `sftp-username`: Usuário SFTP
-- `sftp-password`: Senha SFTP
-- `sftp-port` (opcional): Porta do servidor SFTP (padrão: 22)
+- `sftp-id`: UUID que referencia as credenciais salvas no servidor
 
 **Query Parameters:**
 - `remotePath` (opcional): Caminho remoto onde o arquivo será salvo (padrão: /)
@@ -97,9 +114,7 @@ POST /api/sftp/upload
 **Exemplo:**
 ```bash
 curl -X POST http://localhost:3000/api/sftp/upload \
-  -H "sftp-host: sftp.exemplo.com" \
-  -H "sftp-username: usuario" \
-  -H "sftp-password: senha" \
+  -H "sftp-id: b21f5c56-7f4b-4c7a-8e73-7ebf9f7c0b1d" \
   -F "file=@/caminho/para/arquivo.txt" \
   -F "remotePath=/pasta/destino"
 ```
@@ -110,10 +125,7 @@ GET /api/sftp/list
 ```
 
 **Headers obrigatórios:**
-- `sftp-host`: Hostname do servidor SFTP
-- `sftp-username`: Usuário SFTP
-- `sftp-password`: Senha SFTP
-- `sftp-port` (opcional): Porta do servidor SFTP (padrão: 22)
+- `sftp-id`: UUID que referencia as credenciais salvas no servidor
 
 **Query Parameters:**
 - `remotePath` (opcional): Caminho remoto a ser listado (padrão: /)
@@ -121,9 +133,7 @@ GET /api/sftp/list
 **Exemplo:**
 ```bash
 curl -X GET "http://localhost:3000/api/sftp/list?remotePath=/pasta" \
-  -H "sftp-host: sftp.exemplo.com" \
-  -H "sftp-username: usuario" \
-  -H "sftp-password: senha"
+  -H "sftp-id: b21f5c56-7f4b-4c7a-8e73-7ebf9f7c0b1d"
 ```
 
 **Resposta:**
@@ -153,10 +163,7 @@ GET /api/sftp/download
 ```
 
 **Headers obrigatórios:**
-- `sftp-host`: Hostname do servidor SFTP
-- `sftp-username`: Usuário SFTP
-- `sftp-password`: Senha SFTP
-- `sftp-port` (opcional): Porta do servidor SFTP (padrão: 22)
+- `sftp-id`: UUID que referencia as credenciais salvas no servidor
 
 **Query Parameters:**
 - `remoteFilePath` (obrigatório): Caminho completo do arquivo remoto
@@ -164,21 +171,20 @@ GET /api/sftp/download
 **Exemplo:**
 ```bash
 curl -X GET "http://localhost:3000/api/sftp/download?remoteFilePath=/pasta/arquivo.txt" \
-  -H "sftp-host: sftp.exemplo.com" \
-  -H "sftp-username: usuario" \
-  -H "sftp-password: senha" \
+  -H "sftp-id: b21f5c56-7f4b-4c7a-8e73-7ebf9f7c0b1d" \
   -o arquivo_baixado.txt
 ```
 
 ## 🔒 Segurança
 
-- As credenciais SFTP são enviadas via headers em cada requisição
+- As credenciais ficam em um arquivo local (`sftp-credentials.json`) fora do controle de versão
+- O cliente só envia o UUID da credencial (`sftp-id`) nos headers
 - Os arquivos temporários são automaticamente removidos após upload/download
-- Não armazena credenciais no servidor
 
 ## 🛠️ Variáveis de Ambiente
 
 - `PORT`: Porta do servidor (padrão: 3000)
+- `SFTP_CREDENTIALS_FILE`: Caminho para o JSON de credenciais (padrão: ./sftp-credentials.json)
 
 ## 📝 Notas
 
