@@ -6,4 +6,3 @@ downloaded/*
 .env
 *.log
 .DS_Store
-sftp-credentials.json

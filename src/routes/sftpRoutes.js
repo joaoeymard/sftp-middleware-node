@@ -26,7 +26,7 @@ router.use(validateSftpCredentials);
 /**
  * POST /upload
  * Upload a file to SFTP server
- * Headers: sftp-id (UUID que referencia as credenciais armazenadas)
+ * Headers: sftp-host, sftp-port (optional), sftp-username, sftp-password
  * Body: multipart/form-data with 'file' field
  * Query: remotePath (optional, default: /)
  */
@@ -35,7 +35,7 @@ router.post('/upload', upload.single('file'), uploadFile);
 /**
  * GET /list
  * List files from SFTP server
- * Headers: sftp-id (UUID que referencia as credenciais armazenadas)
+ * Headers: sftp-host, sftp-port (optional), sftp-username, sftp-password
  * Query: remotePath (optional, default: /)
  */
 router.get('/list', listFiles);
@@ -43,7 +43,7 @@ router.get('/list', listFiles);
 /**
  * GET /download
  * Download a file from SFTP server
- * Headers: sftp-id (UUID que referencia as credenciais armazenadas)
+ * Headers: sftp-host, sftp-port (optional), sftp-username, sftp-password
  * Query: remoteFilePath (required)
  */
 router.get('/download', downloadFile);
@@ -51,7 +51,7 @@ router.get('/download', downloadFile);
 /**
  * POST /move
  * Move/rename a file or directory on the SFTP server
- * Headers: sftp-id (UUID que referencia as credenciais armazenadas)
+ * Headers: sftp-host, sftp-port (optional), sftp-username, sftp-password
  * Query: from (source path), to (destination path)
  */
 router.post('/move', moveFile);

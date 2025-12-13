@@ -21,7 +21,7 @@ async function uploadFile(req, res) {
     localFilePath = req.file.path;
 
     // Get remote path from query parameter or use root
-    const remotePath = req.query.path || '/';
+    const remotePath = req.query.remotePath || '/';
     const remoteFilePath = path.posix.join(remotePath, req.file.originalname);
     
     // Connect to SFTP server
@@ -63,7 +63,7 @@ async function listFiles(req, res) {
   
   try {
     // Get remote path from query parameter or use root
-    const remotePath = req.query.path || '/';
+    const remotePath = req.query.remotePath || '/';
     
     // Connect to SFTP server
     sftp = await createSftpClient(req.sftpCredentials);
@@ -101,8 +101,8 @@ async function moveFile(req, res) {
   let sftp = null;
 
   try {
-    const fromPath = req.body?.from;
-    const toPath = req.body?.to;
+    const fromPath = normalizeRemotePath(req.query?.from);
+    const toPath = normalizeRemotePath(req.query?.to);
 
     if (!fromPath || !toPath) {
       return res.status(400).json({
@@ -139,7 +139,7 @@ async function downloadFile(req, res) {
   
   try {
     // Get remote file path from query parameter
-    const remoteFilePath = req.query.filePath;
+    const remoteFilePath = req.query.remoteFilePath;
     
     if (!remoteFilePath) {
       return res.status(400).json({ 

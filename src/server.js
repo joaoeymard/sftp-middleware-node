@@ -10,12 +10,12 @@ app.use(express.urlencoded({ extended: true }));
 
 // Basic request logging for SFTP calls
 app.use((req, res, next) => {
-  const credentialId = req.headers['sftp-id'];
-
-  if (credentialId)
-    console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl} credential=${credentialId}`)
+  const host = req.headers['sftp-host'];
+  const user = req.headers['sftp-username'];
+  if (host && user)
+    console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl} sftp=${user}@${host}`)
   else
-    console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl} credential=missing`);
+    console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl} sftp=missing-credentials`);
   
   next();
 });
@@ -40,7 +40,10 @@ app.get('/', (req, res) => {
       move: 'POST /api/sftp/move'
     },
     requiredHeaders: {
-      'sftp-id': 'UUID que referencia as credenciais armazenadas no servidor'
+      'sftp-host': 'SFTP server hostname',
+      'sftp-port': 'SFTP server port (optional, default: 22)',
+      'sftp-username': 'SFTP username',
+      'sftp-password': 'SFTP password'
     }
   });
 });
